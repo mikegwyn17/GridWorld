@@ -1,19 +1,19 @@
 import numpy as np
 import random
-import time
 
 
 class Agent(object):
     """A sarsa(lambda) agent for GridWorld"""
 
-    def __init__(self):
+    def __init__(self, rewards):
         """
         :param rewards: a numpy array
         """
-        self.alpha = 0.1
+        self.alpha = 0.9
         self.gamma = 0.5
-        self.lambd = 0.9
+        self.lambd = 0.1
         self.epsilon = 0.9
+        self.rewards = rewards
         self.reset_etable()
         self.init_qtable()
 
@@ -23,15 +23,13 @@ class Agent(object):
 
     def init_qtable(self):
         """Initialize Q(s, a) table with random small values"""
-        self.qtable = np.random.random_sample((22,22,4)) * 0.9 + 0.01
+        self.qtable = np.random.random_sample((22,22,4)) * 0.09 + 0.01
 
-    def take_step(self, reward):
+    def take_step(self):
         (row_prime, col_prime) = self.move()
-        print('{}'.format((self.row, self.col)))
-        print('{}'.format((row_prime, col_prime)))
         action_prime = self.choose_action(row_prime, col_prime)
         delta = (
-            reward +
+            self.rewards[row_prime][col_prime] +
             (self.gamma * self.qtable[row_prime][col_prime][self.action]) -
             self.qtable[self.row][self.col][self.action]
         )
@@ -40,7 +38,6 @@ class Agent(object):
         self.row = row_prime
         self.col = col_prime
         self.action = action_prime
-        
 
     def spawn(self):
         """Initialize state and action for new episode"""
@@ -75,9 +72,11 @@ class Agent(object):
             return self.best_action(row, col)
 
     def best_action(self, row, col):
-        q = self.qtable[row][col]
-        best = np.max(q)
+        best = self.best_value(row, col)
         for i in range(4):
-            if best == q[i]:
+            if best == self.qtable[row][col][i]:
                 return i
+
+    def best_value(self, row, col):
+        return np.max(self.qtable[row][col])
 
